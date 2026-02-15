@@ -1,62 +1,199 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides complete guidance for transcribing Rob Braxman YouTube videos and publishing them as articles to brax.guide.
 
 ## Project Overview
 
-This is a Warp skill that transcribes Rob Braxman YouTube videos and publishes them as articles to brax.guide. The skill is defined in `skills/brax-video-transcriber/SKILL.md`.
+This workflow transcribes Rob Braxman YouTube videos using Supadata API and publishes them as comprehensive articles to brax.guide. The YouTube URL is provided via Oz API as input when spawning the agent.
 
-## Architecture
+## 5-Step Workflow
 
+### Step 1: Get YouTube URL
+The YouTube URL is provided as input via the Oz API prompt. Extract the video ID from the URL for use in subsequent steps.
+
+### Step 2: Transcribe with Supadata API
+
+**API Endpoint:**
+```bash
+curl -s "https://api.supadata.ai/v1/youtube/transcript?url=YOUTUBE_URL&text=true" \
+  -H "x-api-key: $SUPADATA_API_KEY"
 ```
-youtube article posting/
-├── skills/brax-video-transcriber/
-│   ├── SKILL.md              # Main skill definition (5-step pipeline)
-│   ├── references/
-│   │   ├── api-reference.md  # Supadata & brax.guide API docs
-│   │   └── content_guideline.md  # Brax brand voice & writing style
-│   └── scripts/              # Bash helper scripts (fetch, transcribe, publish)
-├── output/                   # Generated content drafts
-└── .env                      # API keys (SUPADATA_API_KEY, BRAX_GUIDE_API_KEY)
+
+**Parameters:**
+- `url` - Full YouTube video URL
+- `text=true` - Returns plain text transcript (recommended)
+- `lang=en` - Language (optional)
+
+**Async Jobs:** If API returns HTTP 202, poll `GET https://api.supadata.ai/v1/transcript/{jobId}` every 2 seconds until 200.
+
+**Helper Script:** `skills/brax-video-transcriber/scripts/transcribe.sh <youtube_url>`
+
+### Step 3: Research the Topic
+
+Conduct research to enrich the article beyond the video transcript.
+
+**Research Process:**
+1. Identify key claims from transcript
+2. Perform web searches for supporting information
+3. Extract 3-8 relevant facts, statistics, or quotes
+
+**Acceptable Sources:**
+- Security researchers (Citizen Lab, Bruce Schneier, EFF)
+- Privacy NGOs (EFF, EPIC, Privacy International, Access Now)
+- Independent media (The Intercept, Ars Technica, Techdirt, 404 Media)
+- Academic papers and research
+- Privacy advocates (Rob Braxman, Louis Rossmann, Naomi Brockwell)
+- Court documents, government reports
+
+**NOT Acceptable:**
+- Big Tech's own statements about themselves
+- Corporate press releases or sponsored content
+
+### Step 4: Generate Article
+
+Create a comprehensive 1500-3000 word HTML article. This is NOT a summary—fully cover everything in the video plus research findings.
+
+**Article Structure:**
+1. **Opening** — Hook with core problem/threat
+2. **Context** — What's happening and why it matters
+3. **Deep Dive** — Cover each major topic with `<h2>` sections, weave in research
+4. **Bigger Picture** — Connect to broader privacy/surveillance trends
+5. **What You Can Do** — Actionable recommendations
+6. **Sources** — List all references with links
+
+**HTML Formatting:**
+```html
+<h2>Section Heading</h2>
+<p>Paragraph with <strong>bold</strong> and <em>italic</em> emphasis.</p>
+<ul>
+  <li>List items</li>
+</ul>
 ```
 
-## Key Workflow Steps
+**Required Fields:**
+- `title` - Compelling, suggestive (use "could", "may", "?")
+- `slug` - URL-friendly (lowercase, hyphens)
+- `content` - Full HTML article (1500-3000 words)
+- `excerpt` - 1-2 sentences (max 200 chars, plain text)
+- `youtube_url` - Original video URL
+- `thumbnail_url` - `https://img.youtube.com/vi/{VIDEO_ID}/maxresdefault.jpg`
+- `category` - One of: privacy, security, technology, surveillance, deplatforming, smartphones, vpn, linux, degoogle
+- `duration` - Video duration (e.g., "15:32")
+- `published` - Set to `false` (draft mode)
 
-1. **Find Video** — Get YouTube URL or auto-fetch latest from Rob Braxman's channel via RSS
-2. **Transcribe** — Use Supadata API (`api.supadata.ai/v1/youtube/transcript`)
-3. **Research** — Find independent sources supporting the video's claims
-4. **Write** — Generate HTML article following brand guidelines (1500-3000 words)
-5. **Publish** — POST to brax.guide API (requires user approval)
+### Step 5: Save Draft & Await Approval
 
-## External APIs
+Save the generated article to `output/` directory as markdown or JSON. Show preview of title, excerpt, and content.
 
-| API | Base URL | Auth Header |
-|-----|----------|-------------|
-| Supadata | `api.supadata.ai/v1` | `x-api-key: $SUPADATA_API_KEY` |
-| brax.guide | `ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api` | `Authorization: Bearer $BRAX_GUIDE_API_KEY` |
+**DO NOT publish without explicit user confirmation.**
 
-## Rob Braxman Channel
+To publish:
+```bash
+curl -X POST "https://ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api/videos" \
+  -H "Authorization: Bearer $BRAX_GUIDE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @article.json
+```
 
-- **Channel ID:** `UCYVU6rModlGxvJbszCclGGw`
-- **RSS Feed:** `https://www.youtube.com/feeds/videos.xml?channel_id=UCYVU6rModlGxvJbszCclGGw`
-- **Thumbnail pattern:** `https://img.youtube.com/vi/{VIDEO_ID}/maxresdefault.jpg`
+Before publishing, check for duplicates: `GET /videos?limit=10`
 
-## Content Requirements
+---
 
-- **Voice:** Confident, principled, human — Brax is both a product maker and movement builder
-- **Tone:** Informative, authentic, skeptical of Big Tech claims
-- **POV:** First-person plural ("we") for company, second-person ("you") for reader
-- **Sources:** Must use independent media only (EFF, Ars Technica, researchers) — never cite Big Tech's own statements about themselves
-- **Robert Braxman is a co-founder** — reference him appropriately when quoting
+## Brand Guidelines
 
-## Article HTML Structure
+### About Brax Technologies
+Brax Technologies builds privacy-first products that challenge Big Tech's control. We give users freedom through open, accessible technology. Robert Braxman (Rob Braxman Tech YouTube channel) is a co-founder.
 
-Articles use `<h2>` for section headings, `<p>` for paragraphs, `<ul><li>` for lists. Fields like title/excerpt are plain text without HTML.
+### Voice
+- **Confident, principled, human** - We're builders and advocates
+- **Transparent** - Tell it as it is, don't hide tradeoffs
+- **Empowering** - Help users take control
+- **Mission-driven** - Everything connects to making privacy accessible
 
-## Critical Workflow Rules
+### Tone
+- **Informative and authentic** - Precision over hype
+- **Skeptical of Big Tech** - Question their claims and intentions
+- **Slightly conspiratorial** - Entertain worst-case scenarios about Big Tech
+- **Avoid:** Clichés, passive voice, jargon, buzzwords, hype
 
-- Always preview generated content before publishing
-- Never publish without explicit user confirmation
-- Check for duplicates on brax.guide (`GET /videos?limit=10`) before creating
-- Handle async Supadata jobs (HTTP 202) by polling the job endpoint
-- Use suggestive language ("could", "may") for speculative claims
+### Point of View
+- Use "we" for the company
+- Use "you" for the reader
+
+### Critical Rules
+- Use suggestive language for speculation ("could", "may") not absolutes ("will")
+- Always cite sources
+- Question Big Tech statements even if substantiated
+- Robert Braxman is a co-founder - reflect this when quoting him
+
+---
+
+## API Reference
+
+### Supadata API
+**Base:** `https://api.supadata.ai/v1`  
+**Auth:** `x-api-key: $SUPADATA_API_KEY`
+
+**Get Transcript:**
+```
+GET /youtube/transcript?url={YOUTUBE_URL}&text=true
+```
+
+**Responses:**
+- 200 - Success
+- 202 - Processing (poll with jobId)
+- 400 - Invalid parameters
+- 401 - Invalid API key
+- 404 - Video not found
+
+### brax.guide API
+**Base:** `https://ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api`  
+**Auth:** `Authorization: Bearer $BRAX_GUIDE_API_KEY`
+
+**List Videos:**
+```
+GET /videos?limit=10&offset=0
+```
+
+**Create Video:**
+```
+POST /videos
+Content-Type: application/json
+```
+
+**Update Video:**
+```
+PATCH /videos?id={UUID}
+```
+
+### Rob Braxman Channel
+- **Channel:** Rob Braxman Tech
+- **URL:** https://www.youtube.com/@robbraxmantech
+- **Channel ID:** UCYVU6rModlGxvJbszCclGGw
+- **RSS:** https://www.youtube.com/feeds/videos.xml?channel_id=UCYVU6rModlGxvJbszCclGGw
+
+---
+
+## Environment & Secrets
+
+In Oz cloud environment, these secrets are automatically available:
+- `SUPADATA_API_KEY` - For transcript API
+- `BRAX_GUIDE_API_KEY` - For publishing
+
+Helper scripts in `skills/brax-video-transcriber/scripts/` automatically load `.env` if running locally.
+
+---
+
+## Execution Checklist
+
+1. ✓ Extract YouTube URL from input prompt
+2. ✓ Verify secrets are available
+3. ✓ Fetch video metadata (title, thumbnail, duration)
+4. ✓ Call Supadata API for transcript (handle async if needed)
+5. ✓ Research topic with independent sources
+6. ✓ Generate comprehensive article following brand guidelines
+7. ✓ Save draft to output/ directory
+8. ✓ Show preview to user
+9. ⚠️ Wait for explicit approval before publishing
+10. ✓ Check for duplicates before publishing
+11. ✓ POST to brax.guide API if approved
