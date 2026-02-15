@@ -17,7 +17,7 @@ Transcribe Rob Braxman YouTube videos using Supadata API and publish them to bra
 
 This skill performs a 5-step pipeline:
 
-1. **Find Video** — Get the YouTube video URL (user-provided or auto-fetch latest from Rob Braxman's channel)
+1. **Get Video URL** — Extract the YouTube video URL from the input (provided via Oz API)
 2. **Transcribe** — Use Supadata API to get the full transcript
 3. **Research** — Search for independent sources that support and enrich the video's arguments
 4. **Write** — Generate a comprehensive, research-backed article following Brax brand guidelines
@@ -27,18 +27,9 @@ This skill performs a 5-step pipeline:
 
 ## Step 1: Get the YouTube Video
 
-### Option A: User provides a URL
-If the user provides a YouTube URL, extract the video ID and proceed.
+The YouTube URL is provided as input via the Oz API when the agent is spawned. The URL will be included in the prompt.
 
-### Option B: Auto-find latest from Rob Braxman
-Rob Braxman's YouTube channel: `https://www.youtube.com/@robbraxmantech`
-
-Use browser automation or the YouTube RSS feed to find the latest video:
-```
-https://www.youtube.com/feeds/videos.xml?channel_id=UCYVU6rModlGxvJbszCclGGw
-```
-
-Extract the video URL, title, thumbnail, and publish date from the feed.
+Extract the video ID from the provided URL for use in subsequent steps.
 
 ---
 
@@ -253,10 +244,9 @@ curl -X POST "https://ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api/videos" 
 
 When running this skill, follow these steps in order:
 
-1. [ ] Determine video source (URL provided or fetch latest)
-2. [ ] Load environment variables from `.env` file (`source C:/claude/Youtube/.env`)
-3. [ ] Verify `SUPADATA_API_KEY` environment variable is set
-4. [ ] Verify `BRAX_GUIDE_API_KEY` environment variable is set
+1. [ ] Extract YouTube URL from the input prompt (provided via Oz API)
+2. [ ] Verify `SUPADATA_API_KEY` secret is available
+3. [ ] Verify `BRAX_GUIDE_API_KEY` secret is available
 5. [ ] Fetch the YouTube video metadata (title, thumbnail, duration)
 6. [ ] Call Supadata API to get transcript
 7. [ ] Handle async job polling if needed (HTTP 202)
