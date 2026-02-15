@@ -7,6 +7,11 @@
 
 set -euo pipefail
 
+# Load .env if it exists (for local development)
+if [ -f "$(dirname "$0")/../../../.env" ]; then
+  source "$(dirname "$0")/../../../.env"
+fi
+
 YOUTUBE_URL="${1:-}"
 
 if [ -z "$YOUTUBE_URL" ]; then

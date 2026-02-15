@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# Load .env if it exists (for local development)
+if [ -f "$(dirname "$0")/../../../.env" ]; then
+  source "$(dirname "$0")/../../../.env"
+fi
+
 CHANNEL_ID="UCYVU6rModlGxvJbszCclGGw"
 RSS_URL="https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}"
 

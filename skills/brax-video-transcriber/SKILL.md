@@ -196,7 +196,9 @@ The article must use HTML formatting for rich-text fields:
 - **Content-Type:** `application/json`
 
 ### Environment Setup
-The brax.guide API key must be stored as an environment variable:
+In the cloud environment (Oz), the `BRAX_GUIDE_API_KEY` secret is automatically available as an environment variable.
+
+For local development, add it to your `.env` file:
 ```
 BRAX_GUIDE_API_KEY=your_key_here
 ```

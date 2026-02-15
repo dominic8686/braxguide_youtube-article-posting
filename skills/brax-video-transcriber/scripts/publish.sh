@@ -20,6 +20,11 @@
 
 set -euo pipefail
 
+# Load .env if it exists (for local development)
+if [ -f "$(dirname "$0")/../../../.env" ]; then
+  source "$(dirname "$0")/../../../.env"
+fi
+
 JSON_FILE="${1:-}"
 
 if [ -z "$JSON_FILE" ]; then
