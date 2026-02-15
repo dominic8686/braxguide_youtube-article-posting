@@ -16,6 +16,7 @@ This prompt triggers a Warp agent to transcribe a YouTube video and generate a b
 ```json
 {
   "prompt": "Process this YouTube video and create an article draft: {{YOUTUBE_URL}}. Follow the instructions in AGENTS.md in the current directory.",
+  "model": "warp-auto-genius",
   "config": {
     "environment_id": "jWlEXG55QiNCRZgIkCUgi8"
   }
