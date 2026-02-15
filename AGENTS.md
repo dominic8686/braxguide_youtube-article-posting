@@ -13,6 +13,8 @@ The YouTube URL is provided as input via the Oz API prompt. Extract the video ID
 
 ### Step 2: Transcribe with Supadata API
 
+**IMPORTANT: You MUST use the Supadata API for transcription. Do NOT use yt-dlp, youtube-dl, whisper, or any other tool. The Supadata API is already set up and working.**
+
 **API Endpoint:**
 ```bash
 curl -s "https://api.supadata.ai/v1/youtube/transcript?url=YOUTUBE_URL&text=true" \
