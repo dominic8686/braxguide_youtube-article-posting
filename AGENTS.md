@@ -81,13 +81,15 @@ Create a comprehensive 1500-3000 word HTML article. This is NOT a summary—full
 - `duration` - Video duration (e.g., "15:32")
 - `published` - Set to `false` (draft mode)
 
-### Step 5: Save Draft & Await Approval
+### Step 5: Publish Draft Automatically
 
-Save the generated article to `output/` directory as markdown or JSON. Show preview of title, excerpt, and content.
+Save the generated article to `output/` directory as JSON, then automatically publish it as a draft to brax.guide.
 
-**DO NOT publish without explicit user confirmation.**
+**Before publishing:**
+1. Check for duplicates: `GET /videos?limit=10` - skip if video already exists
+2. Ensure `published` is set to `false` (draft mode)
 
-To publish:
+**Publish command:**
 ```bash
 curl -X POST "https://ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api/videos" \
   -H "Authorization: Bearer $BRAX_GUIDE_API_KEY" \
@@ -95,7 +97,7 @@ curl -X POST "https://ssihjoqwhuxcufzrjpov.supabase.co/functions/v1/api/videos" 
   -d @article.json
 ```
 
-Before publishing, check for duplicates: `GET /videos?limit=10`
+Confirm the draft was created successfully and report the result.
 
 ---
 
@@ -193,7 +195,6 @@ Helper scripts in `skills/brax-video-transcriber/scripts/` automatically load `.
 5. ✓ Research topic with independent sources
 6. ✓ Generate comprehensive article following brand guidelines
 7. ✓ Save draft to output/ directory
-8. ✓ Show preview to user
-9. ⚠️ Wait for explicit approval before publishing
-10. ✓ Check for duplicates before publishing
-11. ✓ POST to brax.guide API if approved
+8. ✓ Check for duplicates before publishing
+9. ✓ POST to brax.guide API as draft (published: false)
+10. ✓ Confirm draft creation and report result
